@@ -12,8 +12,18 @@ jobs:
         with:
           php-version: '8.4'
 
-      - name: Install dependencies
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install PHP dependencies
         run: composer install --no-interaction --prefer-dist
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Build assets
+        run: npm run build
 
       - name: Prepare application
         run: cp .env.example .env && php artisan key:generate
