@@ -91,6 +91,25 @@
                             </li>
                         @endforeach
                     </ul>
+
+                    @if (! empty($summary['outcomes']) || $summary['outcomes_not_recorded'] > 0)
+                        <div class="mt-6 border-t border-[#EDF1F4] pt-6">
+                            <p class="font-mono text-[11px] font-medium uppercase tracking-[0.14em] text-[#5B6675]">Reported outcomes</p>
+                            <ul class="mt-3 space-y-1.5">
+                                @foreach ($summary['outcomes'] as $outcome => $count)
+                                    <li class="flex items-baseline justify-between gap-4 text-sm">
+                                        <span class="text-[#2C3642]">{{ $outcome }}</span>
+                                        <span class="shrink-0 font-mono tabular-nums text-[#5B6675]">{{ number_format($count) }}<span class="text-[#AAB4BF]"> · {{ round($count / $summary['total'] * 100) }}%</span></span>
+                                    </li>
+                                @endforeach
+                            </ul>
+                            @if ($summary['outcomes_not_recorded'] > 0)
+                                <p class="mt-3 text-xs leading-relaxed text-[#9AA5B1]">
+                                    {{ number_format($summary['outcomes_not_recorded']) }} reports ({{ round($summary['outcomes_not_recorded'] / $summary['total'] * 100) }}%) have no recorded outcome — police.uk does not attach one to anti-social behaviour or the most recent data.
+                                </p>
+                            @endif
+                        </div>
+                    @endif
                 @endif
 
                 <p class="mt-6 border-t border-[#EDF1F4] pt-4 text-xs leading-relaxed text-[#9AA5B1]">

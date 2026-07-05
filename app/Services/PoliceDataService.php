@@ -27,15 +27,22 @@ class PoliceDataService
 
     private function summarise(array $crimes): array
     {
-        $categories = collect($crimes)
-            ->countBy('category')
+        $crimes = collect($crimes);
+
+        $categories = $crimes->countBy('category')->sortDesc();
+
+        $outcomes = $crimes
+            ->map(fn (array $crime): string => $crime['outcome_status']['category'] ?? '__none__')
+            ->countBy()
             ->sortDesc();
 
         return [
-            'total' => count($crimes),
+            'total' => $crimes->count(),
             'categories' => $categories->all(),
             'top_category' => $categories->keys()->first(),
-            'data_month' => $crimes[0]['month'] ?? null,
+            'outcomes' => $outcomes->except('__none__')->all(),
+            'outcomes_not_recorded' => $outcomes->get('__none__', 0),
+            'data_month' => $crimes->first()['month'] ?? null,
         ];
     }
 }
