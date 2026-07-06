@@ -35,4 +35,13 @@ return [
         ],
     ],
 
+    'postcodes' => [
+        'url' => env('POSTCODES_API_URL', 'https://api.postcodes.io'),
+    ],
+
+    'police' => [
+        'url' => env('POLICE_API_URL', 'https://data.police.uk/api'),
+        'cache_ttl' => (int) env('POLICE_CACHE_TTL', 21600),
+    ],
+
 ];

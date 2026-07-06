@@ -2,27 +2,50 @@
 
 namespace App\Services;
 
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class PoliceDataService
 {
     public function getCrimeSummary(float $lat, float $lng): array
     {
-        $crimes = Cache::remember(
-            "crimes:{$lat}:{$lng}",
-            now()->addHours(6),
-            function () use ($lat, $lng): array {
-                $response = Http::get('https://data.police.uk/api/crimes-street/all-crime', [
-                    'lat' => $lat,
-                    'lng' => $lng,
-                ]);
+        $key = "crimes:{$lat}:{$lng}";
 
-                return $response->successful() ? $response->json() : [];
+        $crimes = Cache::get($key);
+
+        if ($crimes === null) {
+            $crimes = $this->fetchCrimes($lat, $lng);
+
+            if ($crimes !== null) {
+                Cache::put($key, $crimes, config('services.police.cache_ttl'));
             }
-        );
+        }
 
-        return $this->summarise($crimes);
+        return $this->summarise($crimes ?? []);
+    }
+
+    private function fetchCrimes(float $lat, float $lng): ?array
+    {
+        try {
+            $response = Http::baseUrl(config('services.police.url'))
+                ->timeout(15)
+                ->retry(2, 300)
+                ->get('/crimes-street/all-crime', ['lat' => $lat, 'lng' => $lng]);
+        } catch (ConnectionException $e) {
+            Log::warning('Police data service unreachable', ['lat' => $lat, 'lng' => $lng, 'error' => $e->getMessage()]);
+
+            return null;
+        }
+
+        if (! $response->successful()) {
+            Log::warning('Police data lookup failed', ['lat' => $lat, 'lng' => $lng, 'status' => $response->status()]);
+
+            return null;
+        }
+
+        return $response->json();
     }
 
     private function summarise(array $crimes): array
