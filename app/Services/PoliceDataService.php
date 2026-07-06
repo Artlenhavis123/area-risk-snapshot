@@ -31,7 +31,7 @@ class PoliceDataService
         try {
             $response = Http::baseUrl(config('services.police.url'))
                 ->timeout(15)
-                ->retry(2, 300)
+                ->retry(2, 300, throw: false)
                 ->get('/crimes-street/all-crime', ['lat' => $lat, 'lng' => $lng]);
         } catch (ConnectionException $e) {
             Log::warning('Police data service unreachable', ['lat' => $lat, 'lng' => $lng, 'error' => $e->getMessage()]);

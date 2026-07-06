@@ -13,7 +13,7 @@ class PostcodeService
         try {
             $response = Http::baseUrl(config('services.postcodes.url'))
                 ->timeout(10)
-                ->retry(2, 200)
+                ->retry(2, 200, throw: false)
                 ->get('/postcodes/'.rawurlencode($postcode));
         } catch (ConnectionException $e) {
             Log::warning('Postcode service unreachable', ['postcode' => $postcode, 'error' => $e->getMessage()]);
